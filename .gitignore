@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.example
+.env.bak
+.DS_Store
+*.log
+.deployed-version
+.previous-version

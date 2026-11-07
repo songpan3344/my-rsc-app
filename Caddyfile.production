@@ -1,0 +1,36 @@
+# 用于替换 /etc/caddy/Caddyfile（部署前已备份到 /root/rsc-backup-20261107/）
+#
+# 链路：公网 :443 → HAProxy（按 SNI songpan-usa-oci2.duckdns.org 分流）
+#       → 127.0.0.1:9443（本 Caddy，TLS 由已有 Let's Encrypt 证书终结）
+#       → 127.0.0.1:3000（Docker 中的 Next.js standalone）
+# Xray Reality 使用 amazon.com SNI，走 HAProxy 的另一条 backend，完全不受影响。
+
+{
+    https_port 9443
+    servers {
+        protocols h1 h2
+    }
+}
+
+songpan-usa-oci2.duckdns.org {
+    bind 127.0.0.1
+
+    # 安全响应头（P0 加固）；并剥离框架指纹
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        X-Frame-Options "DENY"
+        -X-Powered-By
+    }
+
+    # 不启用 encode：避免压缩缓冲干扰 RSC 流式响应
+    reverse_proxy 127.0.0.1:3000 {
+        flush_interval -1
+        lb_try_duration 30s
+    }
+}
+
+http://songpan-usa-oci2.duckdns.org {
+    redir https://songpan-usa-oci2.duckdns.org{uri} permanent
+}

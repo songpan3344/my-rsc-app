@@ -24,23 +24,33 @@ export async function Dashboard({
   const realtime = sp.realtime === '1'
 
   return (
-    <div className="space-y-6">
-      <StreamMonitor realtime={realtime} chunkCount={4} />
+    <div className="space-y-4 sm:space-y-6">
+      <ModeBar realtime={realtime} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Suspense fallback={<WidgetSkeleton id="overview" realtime={realtime} />}>
-          <OverviewWidget realtime={realtime} />
-        </Suspense>
-        <Suspense fallback={<WidgetSkeleton id="egress" realtime={realtime} />}>
-          <EgressWidget realtime={realtime} />
-        </Suspense>
-        <Suspense fallback={<WidgetSkeleton id="traffic" realtime={realtime} />}>
-          <TrafficWidget realtime={realtime} />
-        </Suspense>
-        <Suspense fallback={<WidgetSkeleton id="health" realtime={realtime} />}>
-          <HealthWidget realtime={realtime} />
-        </Suspense>
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <div data-widget-frame="overview">
+          <Suspense fallback={<WidgetSkeleton id="overview" realtime={realtime} />}>
+            <OverviewWidget realtime={realtime} />
+          </Suspense>
+        </div>
+        <div data-widget-frame="egress">
+          <Suspense fallback={<WidgetSkeleton id="egress" realtime={realtime} />}>
+            <EgressWidget realtime={realtime} />
+          </Suspense>
+        </div>
+        <div data-widget-frame="traffic">
+          <Suspense fallback={<WidgetSkeleton id="traffic" realtime={realtime} />}>
+            <TrafficWidget realtime={realtime} />
+          </Suspense>
+        </div>
+        <div data-widget-frame="health">
+          <Suspense fallback={<WidgetSkeleton id="health" realtime={realtime} />}>
+            <HealthWidget realtime={realtime} />
+          </Suspense>
+        </div>
       </div>
+
+      <StreamMonitor realtime={realtime} chunkCount={4} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Suspense fallback={<RuntimeSkeleton />}>
@@ -52,23 +62,53 @@ export async function Dashboard({
   )
 }
 
-/** 静态外壳里为此动态洞预留的占位（构建期预渲染），请求时被 Dashboard 替换。 */
+/** 紧凑模式条：固定单行高度，静态占位与动态内容同高，切换模式不推动下方区块。 */
+function ModeBar({ realtime }: { realtime: boolean | null }) {
+  const label = realtime == null ? '读取模式…' : realtime ? '零模拟延迟对照' : '分级模拟延迟演示'
+  return (
+    <div className="flex h-9 items-center justify-between gap-3 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 px-3 text-xs">
+      <span className="truncate text-slate-300">
+        <span className="text-slate-500">模式 </span>
+        {label}
+      </span>
+      <span className="flex shrink-0 items-center gap-3">
+        {realtime == null ? (
+          <span className="text-slate-600">切换</span>
+        ) : (
+          <a href={realtime ? '/' : '/?realtime=1'} className="text-indigo-300 hover:text-indigo-200">
+            切换
+          </a>
+        )}
+        <a href="#stream-monitor" className="text-slate-400 hover:text-slate-200">
+          瀑布 ↓
+        </a>
+      </span>
+    </div>
+  )
+}
+
+/** 静态外壳里为此动态洞预留的占位（构建期预渲染），请求时被 Dashboard 替换；顺序与高度和 Dashboard 一致。 */
 export function DashboardFallback() {
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-700 bg-slate-900/50 p-6">
+    <div className="space-y-4 sm:space-y-6">
+      <ModeBar realtime={null} />
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        {(['overview', 'egress', 'traffic', 'health'] as const).map((id) => (
+          <div key={id} data-widget-frame={id}>
+            <WidgetSkeleton id={id} realtime={false} />
+          </div>
+        ))}
+      </div>
+      <div
+        data-monitor-placeholder=""
+        className="rounded-2xl border border-slate-700 bg-slate-900/50 p-6"
+      >
         <div className="h-4 w-40 animate-pulse rounded bg-slate-700" />
         <div className="mt-5 space-y-2.5">
           <div className="h-4 w-full animate-pulse rounded bg-slate-800" />
           <div className="h-4 w-5/6 animate-pulse rounded bg-slate-800" />
           <div className="h-4 w-4/6 animate-pulse rounded bg-slate-800" />
         </div>
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <WidgetSkeleton id="overview" realtime={false} />
-        <WidgetSkeleton id="egress" realtime={false} />
-        <WidgetSkeleton id="traffic" realtime={false} />
-        <WidgetSkeleton id="health" realtime={false} />
       </div>
     </div>
   )
@@ -126,7 +166,7 @@ function BoundaryCard() {
       </p>
       <div className="mt-5 space-y-3 text-sm leading-relaxed text-slate-300">
         <p>
-          页面、布局、数据获取、上方所有仪表盘区块都是{' '}
+          页面、布局、数据获取、四个仪表盘区块都是{' '}
           <strong className="text-slate-100">Server Components</strong>
           ，直接读环境变量与进程信息，零客户端 JS。
         </p>

@@ -15,7 +15,7 @@ import {
  */
 
 const CARD =
-  'rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg shadow-black/20'
+  'h-full rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-lg shadow-black/20 sm:p-6'
 
 function Chunk({
   id,
@@ -29,7 +29,7 @@ function Chunk({
   children: React.ReactNode
 }) {
   return (
-    <div data-chunk-ready={id} data-label={label} data-render-ms={latencyMs}>
+    <div className="h-full" data-chunk-ready={id} data-label={label} data-render-ms={latencyMs}>
       {children}
     </div>
   )
@@ -41,7 +41,7 @@ function MetaBadge({ meta, accent }: { meta: ChunkMeta; accent: string }) {
       className={`rounded-full border px-2.5 py-1 font-mono text-[11px] ${accent}`}
       title={`服务端渲染时刻 ${meta.renderedAt}`}
     >
-      {meta.latencyMs > 0 ? `模拟后端 ${meta.latencyMs}ms` : '真实速度 · 0ms'}
+      {meta.latencyMs > 0 ? `模拟后端 ${meta.latencyMs}ms` : '零模拟延迟'}
     </span>
   )
 }
@@ -61,7 +61,7 @@ export async function OverviewWidget({ realtime }: { realtime: boolean }) {
   const data = await getOverview(realtime)
   return (
     <Chunk id="overview" label="节点概览" latencyMs={data.latencyMs}>
-      <section className={CARD}>
+      <section className={`${CARD} @container`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">
@@ -72,7 +72,7 @@ export async function OverviewWidget({ realtime }: { realtime: boolean }) {
           <MetaBadge meta={data} accent="border-indigo-500/30 bg-indigo-500/10 text-indigo-300" />
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 @sm:grid-cols-2 sm:mt-5">
           {data.nodes.map((n) => (
             <div key={n.id} className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
               <div className="flex items-center justify-between gap-2">
@@ -283,14 +283,14 @@ export function WidgetSkeleton({ id, realtime }: { id: keyof typeof STAGGER; rea
   return (
     <section
       data-chunk-skeleton={id}
-      className={`rounded-2xl border ${a.border} bg-slate-900/40 p-6 shadow-lg shadow-black/20`}
+      className={`h-full rounded-2xl border ${a.border} bg-slate-900/40 p-4 shadow-lg shadow-black/20 sm:p-6`}
     >
       <div className="flex items-center justify-between gap-2">
         <p className={`text-xs font-semibold uppercase tracking-widest ${a.text}`}>
-          {LABELS[id]} · 流式传输中
+          {LABELS[id]} · 等待分批传输
         </p>
         <span className="rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-1 font-mono text-[11px] text-slate-400">
-          {ms > 0 ? `模拟后端 ${ms}ms` : '真实速度'}
+          {ms > 0 ? `模拟后端 ${ms}ms` : '零模拟延迟'}
         </span>
       </div>
       <div className="mt-5 space-y-3">
@@ -300,7 +300,7 @@ export function WidgetSkeleton({ id, realtime }: { id: keyof typeof STAGGER; rea
         <div className={`h-3 w-3/5 animate-pulse rounded ${a.bar}`} />
       </div>
       <p className="mt-5 text-xs leading-relaxed text-slate-500">
-        外壳已秒开，此区块在独立 Suspense 边界内由服务器随后推送 —— 不阻塞其它区块。
+        此区块在独立 Suspense 边界内，数据就绪后由服务器在同一响应里分批传输，不阻塞其它区块。
       </p>
     </section>
   )

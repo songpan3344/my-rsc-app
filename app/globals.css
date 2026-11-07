@@ -18,3 +18,36 @@ body {
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/*
+ * 流式区块占位：骨架与到达后的卡片共用同一个 data-widget-frame 容器与 min-height，
+ * 区块替换骨架时不推动下方内容（CLS）。数值来自各断点下实测内容高度，只是下限，
+ * 内容更高时自然撑开、不裁切。display:grid 让骨架/卡片拉伸填满预留高度。
+ */
+[data-widget-frame] {
+  display: grid;
+}
+/* <450px：节点概览单列（容器 @sm 以下）；流量图 SVG 高度 = 内容宽 × 200/720 */
+[data-widget-frame="overview"] { min-height: 796px; }
+[data-widget-frame="egress"] { min-height: 337px; }
+[data-widget-frame="traffic"] { min-height: calc(250px + (100vw - 66px) * 0.2777); }
+[data-widget-frame="health"] { min-height: 603px; }
+/* ≤399px 巡检服务名换行，多出约一行 */
+@media (max-width: 399px) {
+  [data-widget-frame="health"] { min-height: 619px; }
+}
+@media (min-width: 450px) {
+  [data-widget-frame="overview"] { min-height: 441px; }
+  [data-widget-frame="traffic"] { min-height: calc(234px + (100vw - 66px) * 0.2777); }
+}
+@media (min-width: 640px) {
+  [data-widget-frame="overview"] { min-height: 461px; }
+  [data-widget-frame="egress"] { min-height: 353px; }
+  [data-widget-frame="traffic"] { min-height: calc(250px + (100vw - 98px) * 0.2777); }
+  [data-widget-frame="health"] { min-height: 391px; }
+}
+/* ≥1024px 两列：同一行取较高者，骨架阶段就按整行高度预留 */
+@media (min-width: 1024px) {
+  [data-widget-frame="overview"], [data-widget-frame="egress"] { min-height: 461px; }
+  [data-widget-frame="traffic"], [data-widget-frame="health"] { min-height: 391px; }
+}

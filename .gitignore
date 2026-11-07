@@ -8,4 +8,5 @@ out/
 .DS_Store
 *.log
 .deployed-version
-.previous-version*.tsbuildinfo
+.previous-version
+*.tsbuildinfo
